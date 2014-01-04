@@ -39,6 +39,8 @@ public:
   void add_vertex(std::size_t value) {vertices.push_back(value); }
 };
 
+facet make_tetragon(std::size_t a, std::size_t b, std::size_t c, std::size_t d);
+
 /* A surface that is the boundary of compact and connected body */
 class surface {
   std::vector<point> vertices;

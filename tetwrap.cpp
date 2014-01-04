@@ -36,6 +36,15 @@ std::istream& operator>>(std::istream& in, facet& f) {
   return in;
 }
 
+facet make_tetragon(std::size_t a, std::size_t b, std::size_t c, std::size_t d) {
+	facet tetragon;
+	tetragon.add_vertex(a);
+	tetragon.add_vertex(b);
+	tetragon.add_vertex(c);
+	tetragon.add_vertex(d);
+	return tetragon;
+}
+
 surface read_off(std::istream& input) {
   surface result;
   
@@ -84,40 +93,44 @@ void setfacet(tetgenio::facet* f, int a, int b, int c, int d) {
 
 tetgenio generate_input(const geometry& g) {
   tetgenio in;
+
   // All indices start from 0
   in.firstnumber = 0;
   // Determine number of vertices
-  std::vector<std::size_t> indices(g.num_components() + 1);
+  std::vector<std::size_t> vert_ind(g.num_components() + 1);
   for(int i = 0; i < g.num_components(); i++) {
-    indices[i+1] = indices[i] + g.component(i).num_vertices();
+    vert_ind.at(i+1) = vert_ind.at(i) + g.component(i).num_vertices();
     in.numberofpoints += g.component(i).num_vertices();
   }
+
   // Fill the vertices array
   in.pointlist = new REAL[in.numberofpoints * 3];
   for(int i = 0; i < g.num_components(); i++) {
-    for(int j = 0; j < indices[i+1]; j++) {
-      in.pointlist[3 * indices[i] + 3 * j] = g.component(i).vertex(j).x();
-      in.pointlist[3 * indices[i] + 3 * j + 1] = g.component(i).vertex(j).y();
-      in.pointlist[3 * indices[i] + 3 * j + 2] = g.component(i).vertex(j).z();
+    for(int j = 0; j < vert_ind.at(i+1) - vert_ind.at(i); j++) {
+      in.pointlist[3 * vert_ind.at(i) + 3 * j] = g.component(i).vertex(j).x();
+      in.pointlist[3 * vert_ind.at(i) + 3 * j + 1] = g.component(i).vertex(j).y();
+      in.pointlist[3 * vert_ind.at(i) + 3 * j + 2] = g.component(i).vertex(j).z();
     }
   }
+
   // Determine number of facets
-  indices[0] = 0;
+  std::vector<std::size_t> fac_ind(g.num_components() + 1);
   for(int i = 0; i < g.num_components(); i++) {
-    indices[i+1] = indices[i] + g.component(i).num_facets();
+    fac_ind[i+1] = fac_ind[i] + g.component(i).num_facets();
     in.numberoffacets += g.component(i).num_facets();
   }
   // Fill the facets array
   in.facetlist = new tetgenio::facet[in.numberoffacets];
   for(int i = 0; i < g.num_components(); i++) {
-    for(int j = 0; j < indices[i+1]; j++) {
-      tetgenio::facet *f = &in.facetlist[indices[i] + j];
-      setfacet(f, indices[i] + g.component(i).face(j).vertex(0),
-	          indices[i] + g.component(i).face(j).vertex(1),
-	          indices[i] + g.component(i).face(j).vertex(2),
-	          indices[i] + g.component(i).face(j).vertex(3));
+    for(int j = 0; j < fac_ind.at(i+1) - fac_ind.at(i); j++) {
+      tetgenio::facet *f = &in.facetlist[fac_ind[i] + j];
+      setfacet(f, vert_ind[i] + g.component(i).face(j).vertex(0),
+	          vert_ind[i] + g.component(i).face(j).vertex(1),
+	          vert_ind[i] + g.component(i).face(j).vertex(2),
+	          vert_ind[i] + g.component(i).face(j).vertex(3));
     }
   }
+
   // Set up the holes
   in.numberofholes = g.num_holes();
   in.holelist = new REAL[in.numberofholes * 3];
