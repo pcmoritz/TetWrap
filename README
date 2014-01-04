@@ -19,6 +19,9 @@ These functions are provided:
 read_off: Read a surface from an .off file
 generate_input: Construct an object that can then be fed into the
 tetrahedralize function of TetGen to produce the actual mesh
+get_interior_point: Returns a point that is inside (not on the boundary)
+of the provided surface. This can be used for setting up tetgen's hole
+structure.
 
 Typically, a few surfaces are read from .off files or constructed by
 hand, and then assembled into a geometry object. Then, a tetgenio

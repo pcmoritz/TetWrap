@@ -143,4 +143,22 @@ tetgenio generate_input(const geometry& g) {
   return in;
 }
 
+point get_interior_point(const surface& surface) {
+	tetwrap::geometry body;
+	body.add_component(surface);
+	tetgenio in = generate_input(body);
+	tetgenio out;
+	char flags[] = "pQ"; // only do triangulation and be quiet
+	tetrahedralize(flags, &in, &out);
+	if(out.numberoftetrahedra <= 0)
+		throw std::runtime_error("Failed to get interior point of empty surface");
+	REAL x, y, z;
+	for(int i = 0; i < 4; i++) {
+		x += 0.25 * out.pointlist[3 * out.tetrahedronlist[i]];
+		y += 0.25 * out.pointlist[3 * out.tetrahedronlist[i] + 1];
+		z += 0.25 * out.pointlist[3 * out.tetrahedronlist[i] + 2];
+	}
+	return point(x, y, z);
+}
+
 }

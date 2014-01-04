@@ -73,6 +73,9 @@ surface read_off(std::istream& input);
 /* Generate input for mesh generation  */
 tetgenio generate_input(const geometry& geometry);
 
+/* Generate point in the interior */
+point get_interior_point(const surface& surface);
+
 }
 
 #endif
