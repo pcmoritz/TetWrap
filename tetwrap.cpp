@@ -1,14 +1,22 @@
 #include "tetwrap.hpp"
-#include <exception>
+#include <stdexcept>
+#include <iostream>
 
 namespace tetwrap {
 
-std::ostream& point::operator<<(std::ostream& out, const point& p) {
+std::ostream& operator<<(std::ostream& out, const point& p) {
   out << p.x() << " " << p.y() << " " << p.z() << std::endl;
   return out;
 }
 
-std::ostream& facet::operator<<(std::ostream& out, const facet& f) {
+std::istream& operator>>(std::istream& in, point& p) {
+  REAL x, y, z;
+  in >> x >> y >> z;
+  p.x(x); p.y(y); p.z(z);
+  return in;
+}
+
+std::ostream& operator<<(std::ostream& out, const facet& f) {
   out << f.vertices.size();
   for(int k = 0; k < f.vertices.size(); k++) {
     out << " " << f.vertices[k];
@@ -17,11 +25,22 @@ std::ostream& facet::operator<<(std::ostream& out, const facet& f) {
   return out;
 }
 
-surface read_off(const std::istream& input) {
+std::istream& operator>>(std::istream& in, facet& f) {
+  std::size_t size = 0;
+  in >> size;
+  for(int k = 0; k < size; k++) {
+    std::size_t vertex;
+    in >> vertex;
+    f.add_vertex(vertex);
+  }
+  return in;
+}
+
+surface read_off(std::istream& input) {
   surface result;
   
   std::string header;
-  input >> header;
+  input >> std::skipws >> header;
   if(header != "OFF")
     throw std::runtime_error("Input is not an OFF file");
 
@@ -35,7 +54,7 @@ surface read_off(const std::istream& input) {
   input >> num_edges;
 
   for(int k = 0; k < num_vertices; k++) {
-    point p;
+    point p(0.0, 0.0, 0.0);
     input >> p;
     result.add_vertex(p);
   }
@@ -63,7 +82,7 @@ void setfacet(tetgenio::facet* f, int a, int b, int c, int d) {
   p->vertexlist[3] = d;
 }
 
-tetgenio generate_input(const geometry& geometry) {
+tetgenio generate_input(const geometry& g) {
   tetgenio in;
   // All indices start from 0
   in.firstnumber = 0;
@@ -93,10 +112,10 @@ tetgenio generate_input(const geometry& geometry) {
   for(int i = 0; i < g.num_components(); i++) {
     for(int j = 0; j < indices[i+1]; j++) {
       tetgenio::facet *f = &in.facetlist[indices[i] + j];
-      setfacet(f, indices[i] + g.component(i).facet(j).vertex(0),
-	          indices[i] + g.component(i).facet(j).vertex(1),
-	          indices[i] + g.component(i).facet(j).vertex(2),
-	          indices[i] + g.component(i).facet(j).vertex(3));
+      setfacet(f, indices[i] + g.component(i).face(j).vertex(0),
+	          indices[i] + g.component(i).face(j).vertex(1),
+	          indices[i] + g.component(i).face(j).vertex(2),
+	          indices[i] + g.component(i).face(j).vertex(3));
     }
   }
   // Set up the holes
