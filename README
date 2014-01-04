@@ -1,0 +1,12 @@
+TetWrap -- A lightweight wrapper around the TetGen library
+
+TetGen (www.tetgen.org) is a high-quality software for tetrahedral
+meshing. We provide a very lightweight and hackable wrapper around it
+for simplified access to TetGen's capabilities. Althought it uses the
+STL, it is designed in such a way that it would be very easy to ceate
+a STL-less version of the library.
+
+The following datatypes are available:
+
+point -- A three dimensional point indexed by cartesian coordinates
+pcl -- A piecewise linear complex
